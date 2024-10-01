@@ -1,7 +1,7 @@
 """Utility functions."""
 
 import mlflow
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 
 
 def set_mlflow_tracking_uri(mlflow_tracking_uri: str):

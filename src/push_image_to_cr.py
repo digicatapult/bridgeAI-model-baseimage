@@ -11,7 +11,11 @@ def push_image_to_docker_registry(image_full_name: str):
         client = docker.from_env()
         print(f"Pushing {image_full_name} to docker hub using python api...")
         push_logs = client.images.push(image_full_name)
-        print(push_logs)
+        for log in push_logs:
+            # Getting rid of 'pushing' progress status logs
+            # and printing only the required ones
+            if ("status" in log and log["status"] == "Pushed") or "aux" in log:
+                print(log)
     except docker.errors.APIError as e:
         print(f"Error pushing image to docker hub: {e}")
         raise
