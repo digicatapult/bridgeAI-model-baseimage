@@ -1,61 +1,36 @@
 """Push the docker image created to container registry."""
 
-import os
-import subprocess
+import argparse
 
 import docker
 
-dockerhub_username = os.getenv("DOCKERHUB_USERNAME")
-dockerhub_password = os.getenv("DOCKERHUB_PASSWORD")
 
-
-def push_image_to_dockerhub(
-    image_name: str, image_tag: str = "latest", use_cli: bool = True
-):
+def push_image_to_docker_registry(image_full_name: str):
     """Push the docker image to docker hub."""
-    image_full_name = f"{dockerhub_username}/{image_name}:{image_tag}"
+    try:
+        client = docker.from_env()
+        print(f"Pushing {image_full_name} to docker hub using python api...")
+        push_logs = client.images.push(image_full_name)
+        print(push_logs)
+    except docker.errors.APIError as e:
+        print(f"Error pushing image to docker hub: {e}")
+        raise
+    except Exception as e:
+        print(f"Error pushing image to docker hub: {e}")
+        raise e
 
-    if use_cli:
-        try:
-            # TODO: change this temporary authentication method
-            subprocess.run(
-                [
-                    "docker",
-                    "login",
-                    "--username",
-                    dockerhub_username,
-                    "--password",
-                    dockerhub_password,
-                ],
-                check=True,
-            )
-
-            subprocess.run(
-                [
-                    "docker",
-                    "tag",
-                    f"{image_name}:{image_tag}",
-                    image_full_name,
-                ],
-                check=True,
-            )
-
-            print(
-                f"Pushing image {image_full_name} to docker hub using Docker CLI..."
-            )
-            subprocess.run(["docker", "push", image_full_name], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"Error pushing image to docker hub: {e}")
-            raise
-    else:
-        try:
-            # TODO: test and correct this method and make this default
-            client = docker.from_env()
-            print(
-                f"Pushing image {image_full_name} to docker hub using python api..."
-            )
-            client.images.push(image_name, tag=image_tag)
-        except docker.errors.APIError as e:
-            print(f"Error pushing image to docker hub: {e}")
-            raise
     print(f"Successfully pushed {image_full_name} to Docker Hub.")
+
+
+if __name__ == "__main__":
+    # Push the built image to local container registry
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--docker_image",
+        type=str,
+        required=True,
+        help="Full name of the docker image to be pushed.",
+    )
+
+    args = parser.parse_args()
+    push_image_to_docker_registry(args.docker_image)

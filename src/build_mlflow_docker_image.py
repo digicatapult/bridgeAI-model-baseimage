@@ -1,74 +1,37 @@
 """Build an mlflow deployable docker image."""
 
 import argparse
+import json
 import os
-import subprocess
 
-import mlflow
+import docker
+from mlflow.pyfunc.backend import PyFuncBackend
 
-from src.utils import set_mlflow_tracking_uri
-
-
-def build_docker_image(model_uri, image_name, use_cli=True):
-    """Build mlflow model docker image for deployment."""
-    print("MLFLow model docker build starting.")
-    if use_cli:
-        print("Building using cli...")
-        subprocess.run(
-            [
-                "mlflow",
-                "models",
-                "build-docker",
-                "--model-uri",
-                model_uri,
-                "--name",
-                image_name,
-                "--enable-mlserver",
-            ],
-            check=True,
-        )
-    else:
-        print("Building using python api...")
-        mlflow.models.build_docker(
-            model_uri=model_uri,
-            name=image_name,
-            enable_mlserver=True,
-            base_image="python:3.12-slim",
-        )
-    print(f"MLFlow model docker image `{image_name}` build completed.")
+from src.utils import envs, set_mlflow_tracking_uri
 
 
-def generate_docker_file(
-    model_uri: str, out_dir: str = "./mlflow-dockerfile", use_cli: bool = True
-):
+def generate_docker_file(model_uri: str, out_dir: str = "./mlflow-dockerfile"):
     """Generate mlflow model Dockerfile for deployment."""
-    if use_cli:
-        print("Generating Dockerfile using cli...")
-        subprocess.run(
-            [
-                "mlflow",
-                "models",
-                "generate-dockerfile",
-                "--model-uri",
-                model_uri,
-                "--output-directory",
-                out_dir,
-                "--enable-mlserver",
-            ],
-            check=True,
-        )
-    else:
-        print("Generating Dockerfile using python api...")
-        raise NotImplementedError
+    print("Generating Dockerfile using python api...")
+    config = {}
+    env_manager = "conda"
+    # Create an instance of the PyFuncBackend class
+    backend = PyFuncBackend(config=config, env_manager=env_manager)
+    # backend = PyFuncBackend()
+    backend.generate_dockerfile(
+        model_uri=model_uri, output_dir=out_dir, enable_mlserver=True
+    )
 
     print(f"MLFlow model Dockerfile generated in `./{out_dir}/`")
 
 
 def modify_dockerfile(dockerfile_dir: str = "./mlflow-dockerfile/"):
     """Add dependency installation instructions to the dockerfile."""
-    # Dependency installation to be added
-    install_dependencies = "RUN apt-get -y update && apt-get install " \
-                           "-y --no-install-recommends gcc libc-dev\n"
+    # Command to install dependencies
+    command_to_install_deps = (
+        "RUN apt-get -y update && apt-get install "
+        "-y --no-install-recommends gcc libc-dev\n"
+    )
 
     # Insert the dependency installation line after the FROM line
     dockerfile_path = os.path.join(dockerfile_dir, "Dockerfile")
@@ -76,7 +39,7 @@ def modify_dockerfile(dockerfile_dir: str = "./mlflow-dockerfile/"):
         lines = file.readlines()
     for index, line in enumerate(lines):
         if line.startswith("FROM"):
-            lines.insert(index + 1, install_dependencies)
+            lines.insert(index + 1, command_to_install_deps)
             break
 
     # Update Dockerfile
@@ -88,32 +51,42 @@ def modify_dockerfile(dockerfile_dir: str = "./mlflow-dockerfile/"):
 
 def build_from_dockerfile(
     dockerfile_dir: str = "./mlflow-dockerfile/",
+    docker_registry: str = "localhost:5000",
     image_name: str = "mlflow_model",
     image_tag: str = "latest",
-    use_cli: bool = True,
 ):
     """Build image from given dockerfile."""
     dockerfile_path = os.path.join(dockerfile_dir, "Dockerfile")
-    if use_cli:
+
+    print(
+        f"Building image from Dockerfile - "
+        f"{dockerfile_path} using python api..."
+    )
+
+    try:
+        client = docker.from_env()
+        full_image_name = f"{docker_registry}/{image_name}:{image_tag}"
+
+        # Build the Docker image
         print(
-            f"Building image from Dockerfile - {dockerfile_path} using cli..."
+            f"Building Docker image {full_image_name} from {dockerfile_dir}..."
         )
-        subprocess.run(
-            [
-                "docker",
-                "build",
-                "-t",
-                f"{image_name}:{image_tag}",
-                f"{dockerfile_dir}",
-            ],
-            check=True,
+        image, logs = client.images.build(
+            path=dockerfile_dir, tag=full_image_name
         )
-    else:
-        print(
-            f"Building image from Dockerfile - "
-            f"{dockerfile_path} using python api..."
-        )
-        raise NotImplementedError
+
+        # Print build logs
+        for log in logs:
+            if "stream" in log:
+                print(log["stream"].strip())
+
+        print(f"Docker image {full_image_name} built successfully!")
+    except docker.errors.BuildError as e:
+        print(f"Error building Docker image: {str(e)}")
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+    return full_image_name
 
 
 if __name__ == "__main__":
@@ -125,22 +98,32 @@ if __name__ == "__main__":
         help="MLFlow model uri",
     )
 
+    parser.add_argument(
+        "--out_dir", type=str, required=False, default="./mlflow-dockerfile"
+    )
+
     args = parser.parse_args()
 
-    mlflow_tracking_uri = os.getenv(
-        "MLFLOW_TRACKING_URI", "http://mlflow-tracking:80"
-    )
-    set_mlflow_tracking_uri(mlflow_tracking_uri)
+    set_mlflow_tracking_uri(envs.mlflow_tracking_uri)
 
     model_uri = args.model_uri
 
-    model_docker_image_name = os.getenv(
-        "MODEL_DOCKER_IMAGE", "house_price_model"
-    )
-    mlflow_build_base_image = os.getenv(
-        "MODEL_DOCKER_IMAGE", "python:3.12.4-slim"
+    # Generate a docker file with artefacts and dependencies gathered
+    # from the mlflow remote registry
+    generate_docker_file(model_uri, out_dir=args.out_dir)
+
+    # Add missing dependencies to the generated dockerfile
+    modify_dockerfile(dockerfile_dir=args.out_dir)
+
+    # Build docker image to be used as the base image for deployment
+    docker_image = build_from_dockerfile(
+        image_name=envs.mlflow_built_image_name,
+        docker_registry=envs.docker_registry,
+        image_tag=envs.mlflow_built_image_tag,
     )
 
-    build_docker_image(
-        model_uri, model_docker_image_name, mlflow_build_base_image
-    )
+    # write model_uri to the file checked by Airflow for task XComs
+    xcom_json = {"docker_image": f"{docker_image}"}
+
+    with open("/airflow/xcom/return.json", "w") as f:
+        json.dump(xcom_json, f)
