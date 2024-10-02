@@ -62,10 +62,9 @@ def build_from_dockerfile(
         f"Building image from Dockerfile - "
         f"{dockerfile_path} using python api..."
     )
-
+    full_image_name = f"{docker_registry}/{image_name}:{image_tag}"
     try:
         client = docker.from_env()
-        full_image_name = f"{docker_registry}/{image_name}:{image_tag}"
 
         # Build the Docker image
         print(
@@ -83,8 +82,10 @@ def build_from_dockerfile(
         print(f"Docker image {full_image_name} built successfully!")
     except docker.errors.BuildError as e:
         print(f"Error building Docker image: {str(e)}")
+        raise e
     except Exception as e:
-        print(f"An error occurred: {str(e)}")
+        print(f"An error occurred while building docker image: {str(e)}")
+        raise e
 
     return full_image_name
 
