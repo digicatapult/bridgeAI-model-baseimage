@@ -3,12 +3,9 @@ FROM python:3.12-slim
 
 # Install dependencies and Poetry
 RUN apt-get update &&  \
-    apt-get install -y --fix-missing build-essential docker.io && \
+    apt-get install -y --fix-missing build-essential && \
     pip install --no-cache-dir poetry && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# Upgrade pip to the latest version
-RUN pip install --upgrade pip
 
 # Set the working directory in the container
 WORKDIR /app
@@ -24,7 +21,7 @@ ENV POETRY_VIRTUALENVS_CREATE=false
 COPY pyproject.toml poetry.lock ./
 
 # Install only non-development dependencies
-RUN poetry install --no-dev --no-root
+RUN poetry install --only main --no-root
 
 # Copy the rest of the application code into the container
 COPY src ./src
@@ -32,5 +29,5 @@ COPY src ./src
 # Add source directory to python path
 ENV PYTHONPATH="${PYTHONPATH}:/app/src"
 
-# Run the application
-CMD ["poetry", "run", "python", "src/main.py"]
+# Set default command
+CMD ["bash"]

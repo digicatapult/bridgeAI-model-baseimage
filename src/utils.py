@@ -20,6 +20,7 @@ class Envs(BaseSettings):
     docker_registry: str = "localhost:5000"
     mlflow_built_image_name: str = "mlflow_model"
     mlflow_built_image_tag: str = "latest"
+    mlflow_docker_out_dir: str = "./mlflow-dockerfile"
 
     class Config:
         env_prefix = ""
