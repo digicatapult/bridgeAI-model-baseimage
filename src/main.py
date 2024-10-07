@@ -1,7 +1,9 @@
 """Main entry point."""
 
-from src.generate_mlflow_docker_image import (generate_docker_file,
-                                              update_dockerfile)
+from src.generate_mlflow_docker_image import (
+    generate_docker_file,
+    update_dockerfile,
+)
 from src.get_mlflow_model_details import get_model_run_uri
 from src.utils import envs, set_mlflow_tracking_uri
 

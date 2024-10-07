@@ -1,7 +1,7 @@
 """Utility functions."""
 
 import mlflow
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def set_mlflow_tracking_uri(mlflow_tracking_uri: str):
@@ -22,9 +22,7 @@ class Envs(BaseSettings):
     mlflow_built_image_tag: str = "latest"
     mlflow_docker_out_dir: str = "./mlflow-dockerfile"
 
-    class Config:
-        env_prefix = ""
-        case_sensitive = False
+    model_config = SettingsConfigDict(env_prefix="", case_sensitive=False)
 
 
 envs = Envs()

@@ -20,13 +20,18 @@ def generate_docker_file(model_uri: str, out_dir: str = "./mlflow-dockerfile"):
     print(f"MLFlow model Dockerfile generated in `./{out_dir}/`")
 
 
-def update_dockerfile(dockerfile_dir: str = "./mlflow-dockerfile/"):
+def update_dockerfile(
+    dockerfile_dir: str = "./mlflow-dockerfile/", command: str = ""
+):
     """Add dependency installation instructions to the dockerfile."""
     # Command to install dependencies
-    command_to_install_deps = (
-        "RUN apt-get -y update && apt-get install "
-        "-y --no-install-recommends gcc libc-dev\n"
-    )
+    if command == "":
+        command_to_install_deps = (
+            "RUN apt-get -y update && apt-get install "
+            "-y --no-install-recommends gcc libc-dev\n"
+        )
+    else:
+        command_to_install_deps = command
 
     # Insert the dependency installation line after the FROM line
     dockerfile_path = os.path.join(dockerfile_dir, "Dockerfile")
