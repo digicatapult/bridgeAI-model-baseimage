@@ -30,4 +30,4 @@ COPY src ./src
 ENV PYTHONPATH="${PYTHONPATH}:/app/src"
 
 # Set default command
-CMD ["bash"]
+CMD ["poetry", "run", "python", "./src/main.py"]
