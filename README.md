@@ -22,7 +22,7 @@ The following environment variables can be set:
 | DOCKER_REGISTRY                | `localhost:5000`                   | The Docker registry where images are stored                |
 | MLFLOW_BUILT_IMAGE_NAME        | `mlflow_model`                     | The name of the MLflow model Docker image                  |
 | MLFLOW_BUILT_IMAGE_TAG         | `latest`                           | The tag for the MLflow model Docker image                  |
-| MODEL_DCOKER_BUILD_CONTEXT_PVC | `model_docker_build_context_pvc`   | Name of the PVC allocated for this DAG                     |
+| MODEL_DOCKER_BUILD_CONTEXT_PVC | `model_docker_build_context_pvc`   | Name of the PVC allocated for this DAG                     |
 | MODEL_DOCKER_PUSH_SECRET       | `ecr-credentials`                  | Name of the secret to authenticate ECR access              | 
 
 
