@@ -17,9 +17,6 @@ class Envs(BaseSettings):
     mlflow_tracking_uri: str = "http://localhost:8080"
     deploy_model_name: str = "house_price_prediction_prod"
     deploy_model_alias: str = "champion"
-    docker_registry: str = "localhost:5000"
-    mlflow_built_image_name: str = "mlflow_model"
-    mlflow_built_image_tag: str = "latest"
     mlflow_docker_out_dir: str = "./mlflow-dockerfile"
     mlflow_tracking_username: str | None = None
     mlflow_tracking_password: str | None = None
