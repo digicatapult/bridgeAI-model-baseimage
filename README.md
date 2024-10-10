@@ -14,15 +14,13 @@
 
 The following environment variables can be set:
 
-| Variable                       | Default Value                    | Description                                   |
-|--------------------------------|----------------------------------|-----------------------------------------------|
-| MLFLOW_TRACKING_URI            | `http://localhost:8080`          | The URI for the MLflow tracking server        |
-| MLFLOW_TRACKING_USERNAME       | None                             | MLFlow tracking username                      | 
-| MLFLOW_TRACKING_PASSWORD       | None                             | MLFlow tracking password                      | 
-| DEPLOY_MODEL_NAME              | `house_price_prediction_prod`    | The name of the model to be deployed          |
-| DEPLOY_MODEL_ALIAS             | `champion`                       | The alias for the deployed model              |
-| MODEL_DOCKER_BUILD_CONTEXT_PVC | `model_docker_build_context_pvc` | Name of the PVC allocated for this DAG        |
-| MODEL_DOCKER_PUSH_SECRET       | `ecr-credentials`                | Name of the secret to authenticate ECR access |
+| Variable                    | Default Value                   | Description                                                                                                                                          |
+|-----------------------------|---------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MLFLOW_TRACKING_URI         | `https://mlflow.dc-mlops.co.uk` | The URI for the MLFlow tracking server. Use `http://mlflow-tracking:80` for kind cluster                                                             |
+| MLFLOW_TRACKING_USERNAME    | None                            | MLFlow tracking username. In kind cluster no need to set it as there is no authentication needed, but ensure that you set it on Production cluster.  | 
+| MLFLOW_TRACKING_PASSWORD    | None                            | MLFlow tracking password. In kind cluster no need to set it as there is no authentication needed, but ensure that you set it on Production cluster.  | 
+| DEPLOY_MODEL_NAME           | `house_price_prediction_prod`   | The name of the model to be deployed                                                                                                                 |
+| DEPLOY_MODEL_ALIAS          | `champion`                      | The alias for the deployed model                                                                                                                     |
 
 
 

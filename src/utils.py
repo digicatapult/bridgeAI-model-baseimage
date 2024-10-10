@@ -14,7 +14,7 @@ class Envs(BaseSettings):
     """Read env variables."""
 
     # Declare env vars and assign default values
-    mlflow_tracking_uri: str = "http://localhost:8080"
+    mlflow_tracking_uri: str = "https://mlflow.dc-mlops.co.uk"
     deploy_model_name: str = "house_price_prediction_prod"
     deploy_model_alias: str = "champion"
     mlflow_docker_out_dir: str = "./mlflow-dockerfile"
