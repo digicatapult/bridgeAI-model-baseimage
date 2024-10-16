@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bridgeai-model-baseimage"
-version = "0.1.0"
+version = "0.1.1"
 description = "An mlflow model base image generation repo for deploying it to kubernetes"
 authors = ["DC AI Team <opensource@digicatapult.org.uk>"]
 readme = "README.md"
