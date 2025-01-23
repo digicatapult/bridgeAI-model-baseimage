@@ -21,7 +21,7 @@ ENV POETRY_VIRTUALENVS_CREATE=false
 COPY pyproject.toml poetry.lock ./
 
 # Install only non-development dependencies
-RUN poetry install --only main --no-root
+RUN poetry install --without dev --no-root
 
 # Copy the rest of the application code into the container
 COPY src ./src
